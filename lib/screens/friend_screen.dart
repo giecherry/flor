@@ -7,20 +7,6 @@ class FriendScreen extends StatelessWidget {
 
   const FriendScreen({super.key, required this.person});
 
-  String get flowerEmoji {
-    if (person.health >= 0.8) return '🌸';
-    if (person.health >= 0.5) return '🌼';
-    if (person.health >= 0.2) return '🥀';
-    return '🪴';
-  }
-
-  String get healthLabel {
-    if (person.health >= 0.8) return 'Blooming';
-    if (person.health >= 0.5) return 'Doing okay';
-    if (person.health >= 0.2) return 'Needs attention';
-    return 'Wilting';
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,9 +28,12 @@ class FriendScreen extends StatelessWidget {
             Center(
               child: Column(
                 children: [
-                  Text(flowerEmoji, style: const TextStyle(fontSize: 80)),
+                  Text(
+                    person.flowerEmoji,
+                    style: const TextStyle(fontSize: 80),
+                  ),
                   const SizedBox(height: 8),
-                  Text(healthLabel, style: FlorTheme.subheading),
+                  Text(person.healthLabel, style: FlorTheme.subheading),
                   const SizedBox(height: 4),
                   Text(
                     person.daysSinceContact == 999
@@ -52,58 +41,75 @@ class FriendScreen extends StatelessWidget {
                         : 'Last contact ${person.daysSinceContact} days ago',
                     style: FlorTheme.caption,
                   ),
+                  if (person.birthday != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      '🎂 ${_formatBirthday(person.birthday!)}',
+                      style: FlorTheme.caption,
+                    ),
+                  ],
                 ],
               ),
             ),
 
             const SizedBox(height: 40),
 
-            // Actions
+            // Care actions — one button per contact method
             const Text('Tend to them', style: FlorTheme.subheading),
             const SizedBox(height: 12),
-            _ActionButton(
-              label: 'Send a text',
-              emoji: '💬',
-              color: FlorTheme.yellow,
-              onTap: () {},
-            ),
-            const SizedBox(height: 8),
-            _ActionButton(
-              label: 'Send a meme',
-              emoji: '😂',
-              color: FlorTheme.pink,
-              onTap: () {},
-            ),
-            const SizedBox(height: 8),
-            _ActionButton(
-              label: person.preferredContact == 'call'
-                  ? 'Give them a call'
-                  : 'Open Instagram',
-              emoji: person.preferredContact == 'call' ? '📞' : '📱',
-              color: FlorTheme.green,
-              onTap: () {},
+            ...person.contactMethods.map(
+              (method) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _ActionButton(
+                  label: method.label,
+                  emoji: method.emoji,
+                  color: FlorTheme.yellow,
+                  onTap: () {},
+                ),
+              ),
             ),
 
-            const SizedBox(height: 40),
+            const SizedBox(height: 32),
 
             // Interests
-            const Text('Interests', style: FlorTheme.subheading),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: person.interests
-                  .map(
-                    (i) => Chip(
-                      label: Text(i, style: FlorTheme.caption),
-                      backgroundColor: FlorTheme.neutral,
-                    ),
-                  )
-                  .toList(),
-            ),
+            if (person.interests.isNotEmpty) ...[
+              const Text('Interests', style: FlorTheme.subheading),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: person.interests
+                    .map(
+                      (i) => Chip(
+                        label: Text(i, style: FlorTheme.caption),
+                        backgroundColor: FlorTheme.neutral,
+                      ),
+                    )
+                    .toList(),
+              ),
+            ],
           ],
         ),
       ),
     );
+  }
+
+  String _formatBirthday(DateTime birthday) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return '${months[birthday.month - 1]} ${birthday.day}';
   }
 }
 

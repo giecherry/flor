@@ -1,8 +1,104 @@
+enum RelationshipType { friend, family, partner, colleague }
+
+enum ContactMethod {
+  call,
+  videoCall,
+  text,
+  whatsapp,
+  instagram,
+  snapchat,
+  email,
+  meetInPerson,
+}
+
+enum FlowerType { rose, daisy, tulip, sunflower, lavender }
+
+extension ContactMethodInfo on ContactMethod {
+  String get shortLabel {
+    switch (this) {
+      case ContactMethod.call:
+        return 'Call';
+      case ContactMethod.videoCall:
+        return 'Video call';
+      case ContactMethod.text:
+        return 'Text';
+      case ContactMethod.whatsapp:
+        return 'WhatsApp';
+      case ContactMethod.instagram:
+        return 'Instagram';
+      case ContactMethod.snapchat:
+        return 'Snapchat';
+      case ContactMethod.email:
+        return 'Email';
+      case ContactMethod.meetInPerson:
+        return 'Meet up';
+    }
+  }
+
+  String get emoji {
+    switch (this) {
+      case ContactMethod.call:
+        return '📞';
+      case ContactMethod.videoCall:
+        return '🎥';
+      case ContactMethod.text:
+        return '💬';
+      case ContactMethod.whatsapp:
+        return '💚';
+      case ContactMethod.instagram:
+        return '📸';
+      case ContactMethod.snapchat:
+        return '👻';
+      case ContactMethod.email:
+        return '📧';
+      case ContactMethod.meetInPerson:
+        return '🤝';
+    }
+  }
+
+  String get label {
+    switch (this) {
+      case ContactMethod.call:
+        return 'Give them a call';
+      case ContactMethod.videoCall:
+        return 'Video call';
+      case ContactMethod.text:
+        return 'Send a text';
+      case ContactMethod.whatsapp:
+        return 'Message on WhatsApp';
+      case ContactMethod.instagram:
+        return 'Open Instagram';
+      case ContactMethod.snapchat:
+        return 'Open Snapchat';
+      case ContactMethod.email:
+        return 'Send an email';
+      case ContactMethod.meetInPerson:
+        return 'Meet in person';
+    }
+  }
+}
+
+extension RelationshipTypeInfo on RelationshipType {
+  String get label {
+    switch (this) {
+      case RelationshipType.friend:
+        return 'Friend';
+      case RelationshipType.family:
+        return 'Family';
+      case RelationshipType.partner:
+        return 'Partner';
+      case RelationshipType.colleague:
+        return 'Colleague';
+    }
+  }
+}
+
 class Person {
   final String id;
   final String name;
-  final String relationship;
-  final String preferredContact;
+  final RelationshipType relationship;
+  final List<ContactMethod> contactMethods;
+  final FlowerType flowerType;
   final int contactFrequencyDays;
   final DateTime? lastContactDate;
   final DateTime? birthday;
@@ -12,7 +108,8 @@ class Person {
     required this.id,
     required this.name,
     required this.relationship,
-    required this.preferredContact,
+    required this.contactMethods,
+    required this.flowerType,
     required this.contactFrequencyDays,
     this.lastContactDate,
     this.birthday,
@@ -28,5 +125,62 @@ class Person {
     if (lastContactDate == null) return 0.0;
     final ratio = daysSinceContact / contactFrequencyDays;
     return (1.0 - ratio).clamp(0.0, 1.0);
+  }
+
+  String get flowerEmoji {
+    if (health < 0.2) return '🪴';
+    switch (flowerType) {
+      case FlowerType.rose:
+        return health >= 0.8 ? '🌹' : '🥀';
+      case FlowerType.daisy:
+        return '🌼';
+      case FlowerType.tulip:
+        return '🌷';
+      case FlowerType.sunflower:
+        return '🌻';
+      case FlowerType.lavender:
+        return '💐';
+    }
+  }
+
+  String get healthLabel {
+    if (health >= 0.8) return 'Blooming';
+    if (health >= 0.5) return 'Doing okay';
+    if (health >= 0.2) return 'Needs attention';
+    return 'Wilting';
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'relationship': relationship.name,
+      'contactMethods': contactMethods.map((c) => c.name).toList(),
+      'flowerType': flowerType.name,
+      'contactFrequencyDays': contactFrequencyDays,
+      'lastContactDate': lastContactDate?.toIso8601String(),
+      'birthday': birthday?.toIso8601String(),
+      'interests': interests,
+    };
+  }
+
+  factory Person.fromJson(Map<String, dynamic> json) {
+    return Person(
+      id: json['id'],
+      name: json['name'],
+      relationship: RelationshipType.values.byName(json['relationship']),
+      contactMethods: (json['contactMethods'] as List)
+          .map((e) => ContactMethod.values.byName(e))
+          .toList(),
+      flowerType: FlowerType.values.byName(json['flowerType']),
+      contactFrequencyDays: json['contactFrequencyDays'],
+      lastContactDate: json['lastContactDate'] != null
+          ? DateTime.parse(json['lastContactDate'])
+          : null,
+      birthday: json['birthday'] != null
+          ? DateTime.parse(json['birthday'])
+          : null,
+      interests: List<String>.from(json['interests'] ?? []),
+    );
   }
 }

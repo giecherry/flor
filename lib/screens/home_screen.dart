@@ -1,45 +1,18 @@
 import 'package:flutter/material.dart';
-import '../models/person.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/people_provider.dart';
 import '../widgets/flower_card.dart';
 import '../theme.dart';
 import 'friend_screen.dart';
+import 'add_person_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
-  // Mock data
-  List<Person> get people => [
-    Person(
-      id: '1',
-      name: 'Mum',
-      relationship: 'family',
-      preferredContact: 'call',
-      contactFrequencyDays: 7,
-      lastContactDate: DateTime.now().subtract(const Duration(days: 3)),
-      interests: ['travel', 'family'],
-    ),
-    Person(
-      id: '2',
-      name: 'Smilla',
-      relationship: 'friend',
-      preferredContact: 'instagram',
-      contactFrequencyDays: 14,
-      lastContactDate: DateTime.now().subtract(const Duration(days: 10)),
-      interests: ['food', 'drinks'],
-    ),
-    Person(
-      id: '3',
-      name: 'Dad',
-      relationship: 'family',
-      preferredContact: 'call',
-      contactFrequencyDays: 7,
-      lastContactDate: DateTime.now().subtract(const Duration(days: 20)),
-      interests: ['cars'],
-    ),
-  ];
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final peopleAsync = ref.watch(peopleProvider);
+
     return Scaffold(
       backgroundColor: FlorTheme.background,
       appBar: AppBar(
@@ -47,29 +20,43 @@ class HomeScreen extends StatelessWidget {
         elevation: 0,
         title: const Text('Flor', style: FlorTheme.heading),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
+      body: peopleAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Something went wrong: $e')),
+        data: (people) => Padding(
+          padding: const EdgeInsets.all(16),
+          child: GridView.builder(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+            ),
+            itemCount: people.length,
+            itemBuilder: (context, index) {
+              return FlowerCard(
+                person: people[index],
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => FriendScreen(person: people[index]),
+                    ),
+                  );
+                },
+              );
+            },
           ),
-          itemCount: people.length,
-          itemBuilder: (context, index) {
-            return FlowerCard(
-              person: people[index],
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => FriendScreen(person: people[index]),
-                  ),
-                );
-              },
-            );
-          },
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddPersonScreen()),
+          );
+        },
+        backgroundColor: FlorTheme.yellow,
+        child: const Icon(Icons.add, color: FlorTheme.textDark),
       ),
     );
   }

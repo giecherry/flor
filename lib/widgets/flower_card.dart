@@ -8,24 +8,17 @@ class FlowerCard extends StatelessWidget {
 
   const FlowerCard({super.key, required this.person, required this.onTap});
 
-  // Color based on relationship type
   Color get cardColor {
     switch (person.relationship) {
-      case 'family':
+      case RelationshipType.family:
         return FlorTheme.blue;
-      case 'friend':
+      case RelationshipType.friend:
         return FlorTheme.pink;
-      default:
+      case RelationshipType.partner:
         return FlorTheme.yellow;
+      case RelationshipType.colleague:
+        return FlorTheme.neutral;
     }
-  }
-
-  // Emoji based on flower health - todo update to ilustrations
-  String get flowerEmoji {
-    if (person.health >= 0.8) return '🌸';
-    if (person.health >= 0.5) return '🌼';
-    if (person.health >= 0.2) return '🥀';
-    return '🪴';
   }
 
   @override
@@ -41,7 +34,7 @@ class FlowerCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(flowerEmoji, style: const TextStyle(fontSize: 40)),
+            Text(person.flowerEmoji, style: const TextStyle(fontSize: 40)),
             const SizedBox(height: 8),
             Text(person.name, style: FlorTheme.subheading),
             const SizedBox(height: 4),
