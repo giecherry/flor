@@ -23,30 +23,76 @@ class HomeScreen extends ConsumerWidget {
       body: peopleAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Something went wrong: $e')),
-        data: (people) => Padding(
-          padding: const EdgeInsets.all(16),
-          child: GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-            ),
-            itemCount: people.length,
-            itemBuilder: (context, index) {
-              return FlowerCard(
-                person: people[index],
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => FriendScreen(person: people[index]),
+        data: (people) => people.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('🌱', style: TextStyle(fontSize: 64)),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Your garden is empty',
+                      style: FlorTheme.subheading,
                     ),
-                  );
-                },
-              );
-            },
-          ),
-        ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Add someone you care about',
+                      style: FlorTheme.caption,
+                    ),
+                    const SizedBox(height: 32),
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AddPersonScreen(),
+                        ),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 14,
+                        ),
+                        decoration: BoxDecoration(
+                          color: FlorTheme.textDark,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Text(
+                          'Add your first flower 🌸',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : Padding(
+                padding: const EdgeInsets.all(16),
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                  ),
+                  itemCount: people.length,
+                  itemBuilder: (context, index) {
+                    return FlowerCard(
+                      person: people[index],
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                FriendScreen(person: people[index]),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
