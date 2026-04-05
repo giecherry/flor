@@ -54,6 +54,13 @@ class PeopleNotifier extends AsyncNotifier<List<Person>> {
     await _saveToStorage(updated);
   }
 
+  Future<void> deletePerson(String id) async {
+    final current = state.value ?? [];
+    final updated = current.where((p) => p.id != id).toList();
+    state = AsyncData(updated);
+    await _saveToStorage(updated);
+  }
+
   List<Person> _defaultPeople() {
     return [
       Person(

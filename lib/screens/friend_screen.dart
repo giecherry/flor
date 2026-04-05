@@ -1,14 +1,48 @@
 import 'package:flutter/material.dart';
 import '../models/person.dart';
 import '../theme.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/people_provider.dart';
 
-class FriendScreen extends StatelessWidget {
+class FriendScreen extends ConsumerWidget {
   final Person person;
 
   const FriendScreen({super.key, required this.person});
 
+  void _confirmDelete(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: FlorTheme.background,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Remove from garden?', style: FlorTheme.subheading),
+        content: Text(
+          'This will remove ${person.name} and all their history. This can\'t be undone.',
+          style: FlorTheme.body,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: FlorTheme.textDark),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              ref.read(peopleProvider.notifier).deletePerson(person.id);
+              Navigator.pop(context);
+              Navigator.pop(context);
+            },
+            child: const Text('Remove', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: FlorTheme.background,
       appBar: AppBar(
@@ -19,6 +53,12 @@ class FriendScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(person.name, style: FlorTheme.heading),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: FlorTheme.textDark),
+            onPressed: () => _confirmDelete(context, ref),
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(24),
