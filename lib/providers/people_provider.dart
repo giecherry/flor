@@ -14,7 +14,7 @@ class PeopleNotifier extends AsyncNotifier<List<Person>> {
   Future<List<Person>> _loadFromStorage() async {
     final prefs = await SharedPreferences.getInstance();
     final jsonString = prefs.getString(_storageKey);
-    if (jsonString == null) return _defaultPeople();
+    if (jsonString == null) return [];
     final List decoded = jsonDecode(jsonString);
     return decoded.map((e) => Person.fromJson(e)).toList();
   }
@@ -32,10 +32,19 @@ class PeopleNotifier extends AsyncNotifier<List<Person>> {
     await _saveToStorage(updated);
   }
 
-  Future<void> updateLastContact(String id) async {
+  Future<void> deletePerson(String id) async {
+    final current = state.value ?? [];
+    final updated = current.where((p) => p.id != id).toList();
+    state = AsyncData(updated);
+    await _saveToStorage(updated);
+  }
+
+  Future<void> logContact(String id, ContactMethod method) async {
     final current = state.value ?? [];
     final updated = current.map((p) {
       if (p.id == id) {
+        final updatedDates = Map<String, DateTime>.from(p.lastContactDates);
+        updatedDates[method.name] = DateTime.now();
         return Person(
           id: p.id,
           name: p.name,
@@ -43,7 +52,7 @@ class PeopleNotifier extends AsyncNotifier<List<Person>> {
           contactMethods: p.contactMethods,
           flowerType: p.flowerType,
           contactFrequencyDays: p.contactFrequencyDays,
-          lastContactDate: DateTime.now(),
+          lastContactDates: updatedDates,
           birthday: p.birthday,
           interests: p.interests,
         );
@@ -52,40 +61,6 @@ class PeopleNotifier extends AsyncNotifier<List<Person>> {
     }).toList();
     state = AsyncData(updated);
     await _saveToStorage(updated);
-  }
-
-  Future<void> deletePerson(String id) async {
-    final current = state.value ?? [];
-    final updated = current.where((p) => p.id != id).toList();
-    state = AsyncData(updated);
-    await _saveToStorage(updated);
-  }
-
-  List<Person> _defaultPeople() {
-    return [
-      Person(
-        id: '1',
-        name: 'Mom',
-        relationship: RelationshipType.family,
-        contactMethods: [ContactMethod.call, ContactMethod.videoCall],
-        flowerType: FlowerType.rose,
-        contactFrequencyDays: 7,
-        lastContactDate: DateTime.now().subtract(const Duration(days: 3)),
-        birthday: DateTime(1974, 11, 03),
-        interests: ['travel', 'family'],
-      ),
-      Person(
-        id: '2',
-        name: 'Smilla',
-        relationship: RelationshipType.friend,
-        contactMethods: [ContactMethod.instagram, ContactMethod.meetInPerson],
-        flowerType: FlowerType.daisy,
-        contactFrequencyDays: 14,
-        lastContactDate: DateTime.now().subtract(const Duration(days: 10)),
-        birthday: DateTime(1999, 04, 18),
-        interests: ['food', 'drinks'],
-      ),
-    ];
   }
 }
 

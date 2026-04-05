@@ -100,7 +100,7 @@ class Person {
   final List<ContactMethod> contactMethods;
   final FlowerType flowerType;
   final int contactFrequencyDays;
-  final DateTime? lastContactDate;
+  final Map<String, DateTime> lastContactDates;
   final DateTime? birthday;
   final List<String> interests;
 
@@ -111,10 +111,15 @@ class Person {
     required this.contactMethods,
     required this.flowerType,
     required this.contactFrequencyDays,
-    this.lastContactDate,
+    this.lastContactDates = const {},
     this.birthday,
     this.interests = const [],
   });
+
+  DateTime? get lastContactDate {
+    if (lastContactDates.isEmpty) return null;
+    return lastContactDates.values.reduce((a, b) => a.isAfter(b) ? a : b);
+  }
 
   int get daysSinceContact {
     if (lastContactDate == null) return 999;
@@ -125,6 +130,15 @@ class Person {
     if (lastContactDate == null) return 0.0;
     final ratio = daysSinceContact / contactFrequencyDays;
     return (1.0 - ratio).clamp(0.0, 1.0);
+  }
+
+  bool wasContactedTodayVia(ContactMethod method) {
+    final date = lastContactDates[method.name];
+    if (date == null) return false;
+    final now = DateTime.now();
+    return date.year == now.year &&
+        date.month == now.month &&
+        date.day == now.day;
   }
 
   String get flowerEmoji {
@@ -158,7 +172,9 @@ class Person {
       'contactMethods': contactMethods.map((c) => c.name).toList(),
       'flowerType': flowerType.name,
       'contactFrequencyDays': contactFrequencyDays,
-      'lastContactDate': lastContactDate?.toIso8601String(),
+      'lastContactDates': lastContactDates.map(
+        (k, v) => MapEntry(k, v.toIso8601String()),
+      ),
       'birthday': birthday?.toIso8601String(),
       'interests': interests,
     };
@@ -174,9 +190,11 @@ class Person {
           .toList(),
       flowerType: FlowerType.values.byName(json['flowerType']),
       contactFrequencyDays: json['contactFrequencyDays'],
-      lastContactDate: json['lastContactDate'] != null
-          ? DateTime.parse(json['lastContactDate'])
-          : null,
+      lastContactDates:
+          (json['lastContactDates'] as Map<String, dynamic>?)?.map(
+            (k, v) => MapEntry(k, DateTime.parse(v)),
+          ) ??
+          {},
       birthday: json['birthday'] != null
           ? DateTime.parse(json['birthday'])
           : null,

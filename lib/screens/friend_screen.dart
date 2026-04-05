@@ -1,15 +1,35 @@
 import 'package:flutter/material.dart';
-import '../models/person.dart';
-import '../theme.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/person.dart';
 import '../providers/people_provider.dart';
+import '../theme.dart';
+import '../utils/frequency_helper.dart';
 
-class FriendScreen extends ConsumerWidget {
+class FriendScreen extends ConsumerStatefulWidget {
   final Person person;
 
   const FriendScreen({super.key, required this.person});
 
-  void _confirmDelete(BuildContext context, WidgetRef ref) {
+  @override
+  ConsumerState<FriendScreen> createState() => _FriendScreenState();
+}
+
+class _FriendScreenState extends ConsumerState<FriendScreen> {
+  Set<ContactMethod> _doneToday = {};
+  DateTime _doneTodayDate = DateTime.now();
+
+  Set<ContactMethod> get doneToday {
+    final now = DateTime.now();
+    if (now.day != _doneTodayDate.day ||
+        now.month != _doneTodayDate.month ||
+        now.year != _doneTodayDate.year) {
+      _doneToday = {};
+      _doneTodayDate = now;
+    }
+    return _doneToday;
+  }
+
+  void _confirmDelete(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -17,7 +37,7 @@ class FriendScreen extends ConsumerWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Remove from garden?', style: FlorTheme.subheading),
         content: Text(
-          'This will remove ${person.name} and all their history. This can\'t be undone.',
+          'This will remove ${widget.person.name} and all their history. This can\'t be undone.',
           style: FlorTheme.body,
         ),
         actions: [
@@ -30,7 +50,7 @@ class FriendScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () {
-              ref.read(peopleProvider.notifier).deletePerson(person.id);
+              ref.read(peopleProvider.notifier).deletePerson(widget.person.id);
               Navigator.pop(context);
               Navigator.pop(context);
             },
@@ -41,8 +61,120 @@ class FriendScreen extends ConsumerWidget {
     );
   }
 
+  void _handleAction(BuildContext context, ContactMethod method) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: FlorTheme.background,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // handle bar
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: FlorTheme.neutral,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            Text('${method.emoji} ${method.label}', style: FlorTheme.heading),
+            const SizedBox(height: 8),
+            Text(
+              'Did you reach out to ${widget.person.name}?',
+              style: FlorTheme.body,
+            ),
+
+            const SizedBox(height: 32),
+
+            // confirm button
+            GestureDetector(
+              onTap: () {
+                Navigator.pop(context);
+                _logAction(method);
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                decoration: BoxDecoration(
+                  color: FlorTheme.textDark,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Center(
+                  child: Text(
+                    'Yes, log it 🌸',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // cancel
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                decoration: BoxDecoration(
+                  color: FlorTheme.neutral,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Center(
+                  child: Text('Not yet', style: FlorTheme.subheading),
+                ),
+              ),
+            ),
+
+            SizedBox(height: MediaQuery.of(context).padding.bottom + 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _logAction(ContactMethod method) {
+    ref.read(peopleProvider.notifier).logContact(widget.person.id, method);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Logged! ${widget.person.name}\'s flower is happier 🌸'),
+        backgroundColor: FlorTheme.textDark,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  String _formatBirthday(DateTime birthday) {
+    return '${monthName(birthday.month)} ${birthday.day}';
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
+    final peopleAsync = ref.watch(peopleProvider);
+    final person =
+        peopleAsync.value?.firstWhere(
+          (p) => p.id == widget.person.id,
+          orElse: () => widget.person,
+        ) ??
+        widget.person;
+
     return Scaffold(
       backgroundColor: FlorTheme.background,
       appBar: AppBar(
@@ -56,11 +188,11 @@ class FriendScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_outline, color: FlorTheme.textDark),
-            onPressed: () => _confirmDelete(context, ref),
+            onPressed: () => _confirmDelete(context),
           ),
         ],
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,20 +226,51 @@ class FriendScreen extends ConsumerWidget {
 
             const SizedBox(height: 40),
 
-            // Care actions — one button per contact method
+            // Care actions
             const Text('Tend to them', style: FlorTheme.subheading),
-            const SizedBox(height: 12),
-            ...person.contactMethods.map(
-              (method) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: _ActionButton(
-                  label: method.label,
-                  emoji: method.emoji,
-                  color: FlorTheme.yellow,
-                  onTap: () {},
-                ),
-              ),
+            const SizedBox(height: 4),
+            Text(
+              'Tap an action when you\'ve done it',
+              style: FlorTheme.caption,
             ),
+            const SizedBox(height: 12),
+            ...person.contactMethods.map((method) {
+              final done = person.wasContactedTodayVia(method);
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: GestureDetector(
+                  onTap: done ? null : () => _handleAction(context, method),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
+                    ),
+                    decoration: BoxDecoration(
+                      color: done ? FlorTheme.green : FlorTheme.yellow,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      children: [
+                        Text(
+                          done ? '✅' : method.emoji,
+                          style: const TextStyle(fontSize: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            method.label,
+                            style: FlorTheme.subheading,
+                          ),
+                        ),
+                        if (done) Text('done!', style: FlorTheme.caption),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
 
             const SizedBox(height: 32),
 
@@ -128,60 +291,6 @@ class FriendScreen extends ConsumerWidget {
                     .toList(),
               ),
             ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _formatBirthday(DateTime birthday) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${months[birthday.month - 1]} ${birthday.day}';
-  }
-}
-
-class _ActionButton extends StatelessWidget {
-  final String label;
-  final String emoji;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _ActionButton({
-    required this.label,
-    required this.emoji,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            Text(emoji, style: const TextStyle(fontSize: 20)),
-            const SizedBox(width: 12),
-            Text(label, style: FlorTheme.subheading),
           ],
         ),
       ),
