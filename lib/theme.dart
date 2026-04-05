@@ -4,6 +4,7 @@ class FlorTheme {
   // Colors
   static const Color background = Color(0xFFFDFAF5);
   static const Color textDark = Color(0xFF1A1A1A);
+  static const Color textAccent = Color.fromARGB(255, 255, 183, 0);
   static const Color yellow = Color(0xFFF9E4A0);
   static const Color pink = Color(0xFFF5C4D0);
   static const Color green = Color(0xFFC4DDB8);
@@ -12,8 +13,8 @@ class FlorTheme {
 
   // Text
   static const TextStyle heading = TextStyle(
-    color: textDark,
-    fontSize: 24,
+    color: textAccent,
+    fontSize: 30,
     fontWeight: FontWeight.w600,
     letterSpacing: -0.5,
   );

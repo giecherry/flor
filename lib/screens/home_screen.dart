@@ -18,7 +18,13 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: FlorTheme.background,
         elevation: 0,
-        title: const Text('Flor', style: FlorTheme.heading),
+        title: Row(
+          children: [
+            Image.asset('assets/images/logo.png', width: 50, height: 50),
+            const SizedBox(width: 8),
+            const Text('Flor', style: FlorTheme.heading),
+          ],
+        ),
       ),
       body: peopleAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
