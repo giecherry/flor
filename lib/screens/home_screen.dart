@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/person.dart';
 import '../widgets/flower_card.dart';
 import '../theme.dart';
+import 'friend_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -59,7 +60,12 @@ class HomeScreen extends StatelessWidget {
             return FlowerCard(
               person: people[index],
               onTap: () {
-                print('Tapped ${people[index].name}');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => FriendScreen(person: people[index]),
+                  ),
+                );
               },
             );
           },
