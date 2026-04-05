@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/person.dart';
+import '../services/notification_service.dart';
 
 class PeopleNotifier extends AsyncNotifier<List<Person>> {
   static const _storageKey = 'flor_people';
@@ -30,10 +31,12 @@ class PeopleNotifier extends AsyncNotifier<List<Person>> {
     final updated = [...current, person];
     state = AsyncData(updated);
     await _saveToStorage(updated);
+    await NotificationService().scheduleReminder(person);
   }
 
   Future<void> deletePerson(String id) async {
     final current = state.value ?? [];
+    await NotificationService().cancelReminder(id);
     final updated = current.where((p) => p.id != id).toList();
     state = AsyncData(updated);
     await _saveToStorage(updated);
