@@ -1,17 +1,24 @@
-# flor
+# 🌸 Flor
 
-A new Flutter project.
+A little mobile app for tending to the relationships that matter — friends, family, the people you mean to call more often. Each person in your life is a flower in your garden. Water them with a text, a call, a meme. Watch them bloom or wilt.
 
-## Getting Started
+Built as my first dive into Flutter & Dart — I wanted to try cross-platform mobile development and figured I'd learn by building something I'd actually use.
 
-This project is a starting point for a Flutter application.
+## What it does
 
-A few resources to get you started if this is your first Flutter project:
+- Add people as flowers with their own type, contact methods and care schedule
+- Track how recently you've reached out — flower health reflects the relationship
+- Log contact actions with a confirmation step (no accidental taps)
+- Get reminders when someone needs tending
+- Illustrated flower states
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Built with
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Flutter & Dart
+- Riverpod (state management)
+- shared_preferences (local storage)
+- flutter_local_notifications
+
+## Status
+
+WIP — core features done, more to come (AI message suggestions, birthday reminders, etc).
