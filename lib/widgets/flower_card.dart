@@ -34,7 +34,9 @@ class FlowerCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(person.flowerEmoji, style: const TextStyle(fontSize: 40)),
+            Expanded(
+              child: Image.asset(person.flowerImagePath, fit: BoxFit.contain),
+            ),
             const SizedBox(height: 8),
             Text(person.name, style: FlorTheme.subheading),
             const SizedBox(height: 4),

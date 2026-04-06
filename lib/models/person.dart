@@ -11,7 +11,7 @@ enum ContactMethod {
   meetInPerson,
 }
 
-enum FlowerType { rose, daisy, tulip, sunflower, lavender }
+enum FlowerType { rose, tulip, sunflower, bluebell }
 
 extension ContactMethodInfo on ContactMethod {
   String get shortLabel {
@@ -141,27 +141,17 @@ class Person {
         date.day == now.day;
   }
 
-  String get flowerEmoji {
-    if (health < 0.2) return '🪴';
-    switch (flowerType) {
-      case FlowerType.rose:
-        return health >= 0.8 ? '🌹' : '🥀';
-      case FlowerType.daisy:
-        return '🌼';
-      case FlowerType.tulip:
-        return '🌷';
-      case FlowerType.sunflower:
-        return '🌻';
-      case FlowerType.lavender:
-        return '💐';
-    }
+  String get flowerImagePath {
+    final name = flowerType.name;
+    if (health >= 0.6) return 'assets/images/flowers/$name-vg.png';
+    if (health >= 0.3) return 'assets/images/flowers/$name-g.png';
+    return 'assets/images/flowers/$name-b.png';
   }
 
   String get healthLabel {
-    if (health >= 0.8) return 'Blooming';
-    if (health >= 0.5) return 'Doing okay';
-    if (health >= 0.2) return 'Needs attention';
-    return 'Wilting';
+    if (health >= 0.6) return 'Thriving';
+    if (health >= 0.3) return 'Doing okay';
+    return 'Needs attention';
   }
 
   Map<String, dynamic> toJson() {

@@ -200,9 +200,10 @@ class _FriendScreenState extends ConsumerState<FriendScreen> {
             Center(
               child: Column(
                 children: [
-                  Text(
-                    person.flowerEmoji,
-                    style: const TextStyle(fontSize: 80),
+                  Image.asset(
+                    person.flowerImagePath,
+                    height: 160,
+                    fit: BoxFit.contain,
                   ),
                   const SizedBox(height: 8),
                   Text(person.healthLabel, style: FlorTheme.subheading),

@@ -17,7 +17,7 @@ class AddPersonScreen extends ConsumerStatefulWidget {
 class _AddPersonScreenState extends ConsumerState<AddPersonScreen> {
   final _nameController = TextEditingController();
   RelationshipType _relationship = RelationshipType.friend;
-  FlowerType _flowerType = FlowerType.daisy;
+  FlowerType _flowerType = FlowerType.rose;
   List<ContactMethod> _contactMethods = [];
   List<String> _interests = [];
   int _frequencyDays = 7;
@@ -127,10 +127,19 @@ class _AddPersonScreenState extends ConsumerState<AddPersonScreen> {
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
+              runSpacing: 8,
               children: FlowerType.values.map((type) {
                 final selected = _flowerType == type;
                 return ChoiceChip(
-                  label: Text(type.name),
+                  label: Text(
+                    type.name[0].toUpperCase() + type.name.substring(1),
+                  ),
+                  avatar: Image.asset(
+                    'assets/images/flowers/${type.name}-vg.png',
+                    height: 20,
+                    width: 20,
+                    fit: BoxFit.contain,
+                  ),
                   selected: selected,
                   selectedColor: FlorTheme.pink,
                   backgroundColor: FlorTheme.neutral,
