@@ -26,6 +26,8 @@ class _AddPersonScreenState extends ConsumerState<AddPersonScreen> {
   int? _birthdayYear;
   final _interestController = TextEditingController();
 
+  bool _submitted = false;
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -42,8 +44,22 @@ class _AddPersonScreenState extends ConsumerState<AddPersonScreen> {
   }
 
   void _submit() {
-    if (_nameController.text.trim().isEmpty) return;
-    if (_contactMethods.isEmpty) return;
+    setState(() => _submitted = true);
+
+    if (_nameController.text.trim().isEmpty || _contactMethods.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please fill in the required fields'),
+          backgroundColor: const Color.fromARGB(255, 255, 141, 139),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
 
     final birthday =
         (_birthdayDay != null &&
@@ -98,6 +114,18 @@ class _AddPersonScreenState extends ConsumerState<AddPersonScreen> {
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                    color: _submitted && _nameController.text.trim().isEmpty
+                        ? Colors.red.shade400
+                        : Colors.transparent,
+                    width: 1.5,
+                  ),
+                ),
+                errorText: _submitted && _nameController.text.trim().isEmpty
+                    ? 'Name is required'
+                    : null,
               ),
             ),
 
@@ -175,6 +203,14 @@ class _AddPersonScreenState extends ConsumerState<AddPersonScreen> {
                 );
               }).toList(),
             ),
+            if (_submitted && _contactMethods.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  'Select at least one way to reach them',
+                  style: TextStyle(color: Colors.red.shade400, fontSize: 12),
+                ),
+              ),
 
             const SizedBox(height: 24),
 
