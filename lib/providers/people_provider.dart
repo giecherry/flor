@@ -42,6 +42,15 @@ class PeopleNotifier extends AsyncNotifier<List<Person>> {
     await _saveToStorage(updated);
   }
 
+  Future<void> updatePerson(Person person) async {
+    final current = state.value ?? [];
+    final updated = current.map((p) => p.id == person.id ? person : p).toList();
+    state = AsyncData(updated);
+    await _saveToStorage(updated);
+    await NotificationService().cancelReminder(person.id);
+    await NotificationService().scheduleReminder(person);
+  }
+
   Future<void> logContact(String id, ContactMethod method) async {
     final current = state.value ?? [];
     final updated = current.map((p) {

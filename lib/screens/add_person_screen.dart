@@ -8,7 +8,9 @@ import '../utils/frequency_helper.dart';
 import '../widgets/dropdown_field.dart';
 
 class AddPersonScreen extends ConsumerStatefulWidget {
-  const AddPersonScreen({super.key});
+  final Person? person;
+
+  const AddPersonScreen({super.key, this.person});
 
   @override
   ConsumerState<AddPersonScreen> createState() => _AddPersonScreenState();
@@ -25,8 +27,26 @@ class _AddPersonScreenState extends ConsumerState<AddPersonScreen> {
   int? _birthdayMonth;
   int? _birthdayYear;
   final _interestController = TextEditingController();
-
   bool _submitted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final p = widget.person;
+    if (p != null) {
+      _nameController.text = p.name;
+      _relationship = p.relationship;
+      _flowerType = p.flowerType;
+      _contactMethods = List.from(p.contactMethods);
+      _interests = List.from(p.interests);
+      _frequencyDays = p.contactFrequencyDays;
+      if (p.birthday != null) {
+        _birthdayDay = p.birthday!.day;
+        _birthdayMonth = p.birthday!.month;
+        _birthdayYear = p.birthday!.year;
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -69,22 +89,30 @@ class _AddPersonScreenState extends ConsumerState<AddPersonScreen> {
         : null;
 
     final person = Person(
-      id: const Uuid().v4(),
+      id: widget.person?.id ?? const Uuid().v4(),
       name: _nameController.text.trim(),
       relationship: _relationship,
       contactMethods: _contactMethods,
       flowerType: _flowerType,
       contactFrequencyDays: _frequencyDays,
+      lastContactDates: widget.person?.lastContactDates ?? {},
       birthday: birthday,
       interests: _interests,
     );
 
-    ref.read(peopleProvider.notifier).addPerson(person);
+    if (widget.person != null) {
+      ref.read(peopleProvider.notifier).updatePerson(person);
+    } else {
+      ref.read(peopleProvider.notifier).addPerson(person);
+    }
+
     Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
+    final isEditing = widget.person != null;
+
     return Scaffold(
       backgroundColor: FlorTheme.background,
       appBar: AppBar(
@@ -94,7 +122,10 @@ class _AddPersonScreenState extends ConsumerState<AddPersonScreen> {
           icon: const Icon(Icons.close, color: FlorTheme.textDark),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Add someone', style: FlorTheme.heading),
+        title: Text(
+          isEditing ? 'Edit ${widget.person!.name}' : 'Add someone',
+          style: FlorTheme.heading,
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -350,10 +381,10 @@ class _AddPersonScreenState extends ConsumerState<AddPersonScreen> {
                   color: FlorTheme.textDark,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Center(
+                child: Center(
                   child: Text(
-                    'Add to garden 🌸',
-                    style: TextStyle(
+                    isEditing ? 'Save changes 🌸' : 'Add to garden 🌸',
+                    style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w600,
                       fontSize: 16,

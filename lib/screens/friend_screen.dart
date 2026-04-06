@@ -4,6 +4,7 @@ import '../models/person.dart';
 import '../providers/people_provider.dart';
 import '../theme.dart';
 import '../utils/frequency_helper.dart';
+import 'add_person_screen.dart';
 
 class FriendScreen extends ConsumerStatefulWidget {
   final Person person;
@@ -186,6 +187,15 @@ class _FriendScreenState extends ConsumerState<FriendScreen> {
         ),
         title: Text(person.name, style: FlorTheme.heading),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_outlined, color: FlorTheme.textDark),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AddPersonScreen(person: person),
+              ),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.delete_outline, color: FlorTheme.textDark),
             onPressed: () => _confirmDelete(context),
